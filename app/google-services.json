@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "596229147342",
+    "project_id": "fitwise-bbed5",
+    "storage_bucket": "fitwise-bbed5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:596229147342:android:9c44ef3d8c19e1b3af1e9f",
+        "android_client_info": {
+          "package_name": "com.example.finwise"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDBpnVnlyzCOYm8XiKALBn3wMbNdb6Ch2c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
