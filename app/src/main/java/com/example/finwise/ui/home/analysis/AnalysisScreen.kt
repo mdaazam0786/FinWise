@@ -1,121 +1,161 @@
 package com.example.finwise.ui.home
 
 import BottomNavigationBar
-import android.os.Build
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.layout.*
-import androidx.compose.material.Scaffold
-import androidx.compose.material.icons.Icons // Import necessary icons
-import androidx.compose.material.icons.outlined.KeyboardArrowDown
-import androidx.compose.material.icons.outlined.KeyboardArrowUp
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel // If using viewModel() delegate
 import androidx.navigation.NavHostController
-import com.example.finwise.ui.home.analysis.AnalysisViewModel
-import com.example.finwise.ui.home.analysis.TimeFrameSelector
-import com.example.finwise.R
+import com.example.finwise.data.chartData.TimeFrame
 import com.example.finwise.ui.components.CentreTopBar
-import com.example.finwise.ui.home.analysis.IncomeExpenseChartCard
-import com.example.finwise.ui.home.analysis.IncomeExpenseSummaryItem
+import com.example.finwise.ui.home.analysis.AnalysisViewModel
+import com.example.finwise.ui.home.analysis.BarGraph
+import com.example.finwise.ui.home.analysis.BarType
 
-// Assume other necessary imports (Color, etc.)
-
-@RequiresApi(Build.VERSION_CODES.UPSIDE_DOWN_CAKE)
 @Composable
 fun AnalysisScreen(
-    modifier: Modifier = Modifier, // Allow passing modifiers from parent
-    viewModel: AnalysisViewModel = hiltViewModel(),
-    navController : NavHostController// Pass your actual ViewModel instance here
-
+    navController : NavHostController,
+    viewModel: AnalysisViewModel = hiltViewModel()
 ) {
-    // Collect state from the ViewModel
-    // (Use this approach if passing the whole ViewModel)
-    val selectedTimeFrame by viewModel.selectedTimeFrame.collectAsState()
-    val chartData by viewModel.chartData.collectAsState()
-    val periodIncome by viewModel.periodIncome.collectAsState()
-    val periodExpense by viewModel.periodExpense.collectAsState()
+
+    val selectedTimeFrame = viewModel.selectedTimeFrame.collectAsState()
+    val combinedGraphData = viewModel.graphData.collectAsState()
 
     Scaffold(
         topBar = {
-            CentreTopBar(title = "Analysis", navController = navController)
+            CentreTopBar(
+                title = "Analysis",
+                navController = navController
+            )
         },
         bottomBar = {
-                    BottomNavigationBar(navController = navController)
-        },
-        content = {
+            BottomNavigationBar(navController)
+        }
+    ) { paddingValues ->
         Column(
-            modifier = modifier
+            modifier = Modifier
+                .padding(paddingValues)
                 .fillMaxSize()
-                // Add horizontal padding common to this section
-                .padding(it)
-            // Add bottom padding if this is the last element before a BottomBar
-            // .padding(bottom = 80.dp) // Adjust as needed
+                .background(color = Color(0xFFf0faf5)),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // 1. Time Frame Selector
-            Spacer(modifier = Modifier.height(24.dp))
+            // Timeframe selection buttons
+            Spacer(modifier = Modifier.height(16.dp))
             TimeFrameSelector(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                // .offset(y = (-30).dp), // Uncomment to pull it up slightly if needed
-                selectedTimeFrame = selectedTimeFrame,
-                onTimeFrameSelected = { timeFrame -> viewModel.selectTimeFrame(timeFrame) }, // Call VM function
-                backgroundColor = colorResource(id = R.color.light_green),
-                selectedColor = colorResource(id = R.color.main_green),
-                unselectedColor = Color.DarkGray,
-                selectedTextColor = Color.White
+                selectedTimeFrame = selectedTimeFrame.value,
+                onTimeFrameSelected = { viewModel.setTimeFrame(it) }
             )
+            Spacer(modifier = Modifier.height(16.dp))
 
-            Spacer(modifier = Modifier.height(24.dp)) // Space after selector
-
-            // 2. Income/Expense Chart Card
-            IncomeExpenseChartCard(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp),
-                chartData = chartData,
-                timeFrame = selectedTimeFrame, // Pass for context if needed
-                backgroundColor = colorResource(id = R.color.main_green).copy(alpha = 0.1f),
-                incomeBarColor = colorResource(id = R.color.main_green),
-                expenseBarColor = colorResource(id = R.color.ocean_blue),
-                labelColor = colorResource(id = R.color.letters_icons),
-                gridLineColor = colorResource(id = R.color.light_blue),
-                // Add onSearchClick = {}, onCalendarClick = {} if needed
-            )
-
-            Spacer(modifier = Modifier.height(24.dp)) // Space after chart card
-
-            // 3. Income/Expense Summary Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly, // Space items evenly
-                verticalAlignment = Alignment.Top // Align tops of items
-            ) {
-                IncomeExpenseSummaryItem(
-                    label = "Income",
-                    amount = periodIncome,
-                    icon = Icons.Outlined.KeyboardArrowUp, // Suitable icon
-                    iconTint = colorResource(id = R.color.main_green),
-                    amountColor = colorResource(id = R.color.letters_icons) // Or incomeGreenBar
-                )
-                IncomeExpenseSummaryItem(
-                    label = "Expense",
-                    amount = periodExpense,
-                    icon = Icons.Outlined.KeyboardArrowDown, // Suitable icon
-                    iconTint = colorResource(id = R.color.ocean_blue),
-                    amountColor = colorResource(id = R.color.ocean_blue)
+            // Line Graph
+            if (combinedGraphData.value.expenseData.yValues.isNotEmpty() || combinedGraphData.value.incomeData.yValues.isNotEmpty()) {
+                BarGraph(combinedGraphData = combinedGraphData.value)
+            } else {
+                Text(
+                    text = "No data available for the selected period.",
+                    modifier = Modifier.padding(32.dp),
+                    color = Color.Gray
                 )
             }
 
-            Spacer(modifier = Modifier.height(32.dp)) // Space before Targets
-
-
-        } // End Main Column
-    })
-
-
+            // Optional: Legend for the graph colors
+            Spacer(modifier = Modifier.height(16.dp))
+            GraphLegend(expenseColor = Color.Blue, incomeColor = Color.Green)
+        }
+    }
 }
+
+@Composable
+fun TimeFrameSelector(
+    selectedTimeFrame: TimeFrame,
+    onTimeFrameSelected: (TimeFrame) -> Unit
+) {
+    val timeFrames = remember { TimeFrame.entries.toTypedArray() } // Use entries for enum values
+
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp)
+            .selectableGroup(),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        timeFrames.forEach { timeFrame ->
+            val isSelected = selectedTimeFrame == timeFrame
+            Surface(
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(4.dp)
+                    .selectable(
+                        selected = isSelected,
+                        onClick = { onTimeFrameSelected(timeFrame) },
+                        role = Role.RadioButton
+                    ),
+                shape = MaterialTheme.shapes.small,
+                color = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surface,
+                contentColor = if (isSelected) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurface,
+                shadowElevation = 2.dp
+            ) {
+                Text(
+                    text = timeFrame.name.lowercase().replaceFirstChar { it.uppercase() }, // "Daily", "Weekly"
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp),
+                    textAlign = TextAlign.Center, // FIX: Use TextAlign.Center directly
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GraphLegend(expenseColor: Color, incomeColor: Color) {
+    Row(
+        modifier = Modifier.fillMaxWidth().padding(horizontal = 32.dp),
+        horizontalArrangement = Arrangement.SpaceAround,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        LegendItem(color = expenseColor, text = "Expenses")
+        LegendItem(color = incomeColor, text = "Income")
+    }
+}
+@Composable
+fun LegendItem(color: Color, text: String) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        Spacer(
+            modifier = Modifier
+                .size(16.dp)
+                .background(color, MaterialTheme.shapes.small)
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(text = text, style = MaterialTheme.typography.bodySmall)
+    }
+}
+
+
+
+
+

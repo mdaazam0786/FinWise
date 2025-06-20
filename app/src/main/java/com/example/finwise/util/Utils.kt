@@ -14,6 +14,7 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import java.util.Date
 import java.util.Locale
 
@@ -52,6 +53,55 @@ object Utils {
         }
     }
 
+    fun getStartAndEndOfToday(): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.HOUR_OF_DAY, 0)
+        calendar.set(Calendar.MINUTE, 0)
+        calendar.set(Calendar.SECOND, 0)
+        val start = calendar.timeInMillis
+
+        calendar.set(Calendar.HOUR_OF_DAY, 23)
+        calendar.set(Calendar.MINUTE, 59)
+        calendar.set(Calendar.SECOND, 59)
+        val end = calendar.timeInMillis
+
+        return Pair(start, end)
+    }
+
+    fun getStartAndEndOfWeek(): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+        val start = calendar.timeInMillis
+
+        calendar.add(Calendar.DAY_OF_WEEK, 6)
+        val end = calendar.timeInMillis
+
+        return Pair(start, end)
+    }
+
+    fun getStartAndEndOfMonth(): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 1)
+        val start = calendar.timeInMillis
+
+        calendar.add(Calendar.MONTH, 1)
+        calendar.add(Calendar.DAY_OF_MONTH, -1)
+        val end = calendar.timeInMillis
+
+        return Pair(start, end)
+    }
+
+    fun getStartAndEndOfYear(): Pair<Long, Long> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_YEAR, 1)
+        val start = calendar.timeInMillis
+
+        calendar.add(Calendar.YEAR, 1)
+        calendar.add(Calendar.DAY_OF_YEAR, -1)
+        val end = calendar.timeInMillis
+
+        return Pair(start, end)
+    }
 
 
 }

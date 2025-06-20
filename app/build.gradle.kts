@@ -124,6 +124,10 @@ dependencies {
     implementation("androidx.biometric:biometric:1.1.0")
 
 
+    //For Line Charts
+    implementation ("io.github.ehsannarmani:compose-charts:0.1.7")
+
+
 
 
 

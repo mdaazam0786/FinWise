@@ -30,12 +30,6 @@ class HomeViewModel @Inject constructor(
 
     val incomes = incomeDao.getAllIncome()
 
-    fun onHomeEvent(event: HomeEvent){
-        when(event){
-            HomeEvent.OnAccountBalanceButton -> TODO()
-            HomeEvent.OnExpenseButton -> TODO()
-        }
-    }
 
     fun getTotalBalance(expenseList : List<Expense>, incomeList : List<Income>) : String{
         var balance = 4100.0
