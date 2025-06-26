@@ -63,6 +63,20 @@ fun MultiFloatingActionButton(
                         modifier = Modifier.size(30.dp)
                     )
                 }
+
+                SmallFloatingActionButton(
+                    onClick = {
+                        navController.navigate(Routes.AddSavingsScreen)
+                    },
+                    containerColor = Color(0xFF20c997),
+                    modifier = Modifier.size(60.dp).padding(bottom = 16.dp)
+                ) {
+                    Icon(
+                        painter = painterResource(id = R.drawable.img_24),
+                        contentDescription = "Add Savings",
+                        modifier = Modifier.size(30.dp)
+                    )
+                }
             }
         }
         FloatingActionButton(

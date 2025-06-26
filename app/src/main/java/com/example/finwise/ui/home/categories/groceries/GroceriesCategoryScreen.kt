@@ -45,7 +45,6 @@ import com.example.finwise.ui.home.categories.food.ExpenseCard
 import com.example.finwise.util.Routes
 import com.example.finwise.util.Utils
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun GroceriesCategoryScreen(
     navController: NavHostController,

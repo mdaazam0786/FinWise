@@ -74,15 +74,13 @@ class MainActivity : AppCompatActivity() {
                 )
                 LaunchedEffect(biometricResult) {
                     if(biometricResult is BiometricPromptManager.BiometricResult.AuthenticationNotSet) {
-                        if (Build.VERSION.SDK_INT >= 30) {
-                            val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
-                                putExtra(
-                                    Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
-                                    BIOMETRIC_STRONG or DEVICE_CREDENTIAL
-                                )
-                            }
-                            enrollLauncher.launch(enrollIntent)
+                        val enrollIntent = Intent(Settings.ACTION_BIOMETRIC_ENROLL).apply {
+                            putExtra(
+                                Settings.EXTRA_BIOMETRIC_AUTHENTICATORS_ALLOWED,
+                                BIOMETRIC_STRONG or DEVICE_CREDENTIAL
+                            )
                         }
+                        enrollLauncher.launch(enrollIntent)
                     }
 
                 }

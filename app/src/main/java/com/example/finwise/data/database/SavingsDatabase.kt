@@ -9,7 +9,7 @@ import com.example.finwise.data.model.savings.Savings
 import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Singleton
 
-@Database(entities = [Savings::class], version = 1, exportSchema = false)
+@Database(entities = [Savings::class], version = 3, exportSchema = false)
 @Singleton
 abstract class SavingsDatabase : RoomDatabase(){
 

@@ -40,12 +40,12 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import com.example.finwise.R
 import com.example.finwise.ui.components.CentreTopBar
+import com.example.finwise.ui.components.MultiFloatingActionButton
 import com.example.finwise.ui.home.HomeViewModel
 import com.example.finwise.ui.home.categories.food.ExpenseCard
 import com.example.finwise.util.Routes
 import com.example.finwise.util.Utils
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun EntertainmentCategoryScreen(
     navController: NavHostController,
@@ -68,16 +68,7 @@ fun EntertainmentCategoryScreen(
         },
         floatingActionButton = {
 
-            IconButton(
-                onClick = {
-                    navController.navigate(Routes.AddExpenseScreen)
-
-                },
-                colors = IconButtonDefaults.iconButtonColors(Color(0xFF20c997)),
-                modifier = Modifier.size(60.dp)
-            ) {
-                Icon(imageVector = Icons.Default.Add, contentDescription = "Add")
-            }
+            MultiFloatingActionButton(navController)
 
         },
         content = { padding ->

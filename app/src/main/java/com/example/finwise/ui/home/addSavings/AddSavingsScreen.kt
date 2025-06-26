@@ -1,35 +1,59 @@
-package com.example.finwise.ui.home.addexpense
+package com.example.finwise.ui.home.addSavings
 
 import BottomNavigationBar
-import android.os.Build
 import android.widget.Toast
-import androidx.annotation.RequiresApi
-import androidx.compose.foundation.*
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.ui.res.colorResource
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
+import com.example.finwise.R
 import com.example.finwise.data.model.expense.Expense
+import com.example.finwise.data.model.savings.Savings
 import com.example.finwise.ui.components.CentreTopBar
+import com.example.finwise.ui.home.addexpense.AddExpenseEvent
 import com.example.finwise.ui.home.categories.category.CategoryType
+import com.example.finwise.ui.home.categories.savings.SavingsType
 import com.example.finwise.util.UiEvent
 import com.example.finwise.util.Utils
 import com.vanpra.composematerialdialogs.MaterialDialog
@@ -37,12 +61,11 @@ import com.vanpra.composematerialdialogs.datetime.date.datepicker
 import com.vanpra.composematerialdialogs.rememberMaterialDialogState
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
-import com.example.finwise.R
 
 @Composable
-fun AddExpensesScreen(
+fun AddSavingsScreen(
     navController: NavHostController,
-    addExpenseViewModel: AddExpenseViewModel = hiltViewModel()
+    addSavingsViewModel: AddSavingsViewModel = hiltViewModel()
 ) {
     var pickedDate by remember {
         mutableStateOf(LocalDate.now())
@@ -59,27 +82,22 @@ fun AddExpensesScreen(
     val context = LocalContext.current
 
     val categories = listOf(
-        CategoryType.FOOD,
-        CategoryType.RENT,
-        CategoryType.GROCERIES,
-        CategoryType.ENTERTAINMENT,
-        CategoryType.SAVINGS,
-        CategoryType.TRANSPORT,
-        CategoryType.MEDICINE,
-        CategoryType.GIFTS,
-
+        SavingsType.CAR,
+        SavingsType.HOME,
+        SavingsType.TRAVEL,
+        SavingsType.WEDDING,
         )
     var expanded by remember { mutableStateOf(false) }
     var selectedCategory by remember { mutableStateOf("Select the category") }
 
-    val title by addExpenseViewModel.title.collectAsStateWithLifecycle()
-    val amount by addExpenseViewModel.amount.collectAsStateWithLifecycle()
+    val title by addSavingsViewModel.title.collectAsStateWithLifecycle()
+    val amount by addSavingsViewModel.amount.collectAsStateWithLifecycle()
     val scaffoldState = remember {
         SnackbarHostState()
     }
 
     LaunchedEffect(key1 = true) {
-        addExpenseViewModel.uiEvent.collect { event ->
+        addSavingsViewModel.uiEvent.collect { event ->
             when (event) {
                 is UiEvent.PopBackStack -> navController.popBackStack()
 
@@ -98,7 +116,7 @@ fun AddExpensesScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(hostState = scaffoldState) },
         topBar = {
-            CentreTopBar(title = "Add Expense", navController = navController)
+            CentreTopBar(title = "Add Savings", navController = navController)
         },
         bottomBar = {
             BottomNavigationBar(navController = navController)
@@ -249,8 +267,8 @@ fun AddExpensesScreen(
                             OutlinedTextField(
                                 value = amount,
                                 onValueChange = {
-                                    addExpenseViewModel.onAddExpenseEvent(
-                                        AddExpenseEvent.OnAmountChange(
+                                    addSavingsViewModel.onAddSavingsEvent(
+                                        AddSavingsEvent.OnAmountChange(
                                             it
                                         )
                                     )
@@ -283,8 +301,8 @@ fun AddExpensesScreen(
                             OutlinedTextField(
                                 value = title,
                                 onValueChange = {
-                                    addExpenseViewModel.onAddExpenseEvent(
-                                        AddExpenseEvent.OnTitleChange(
+                                    addSavingsViewModel.onAddSavingsEvent(
+                                        AddSavingsEvent.OnTitleChange(
                                             it
                                         )
                                     )
@@ -306,9 +324,9 @@ fun AddExpensesScreen(
                             onClick = {
                                 val timeStamp = Utils.getMilliFromDate(formattedDate)
 
-                                addExpenseViewModel.onAddExpenseEvent(
-                                    AddExpenseEvent.OnSaveClick(
-                                        expense = Expense(
+                                addSavingsViewModel.onAddSavingsEvent(
+                                    AddSavingsEvent.OnSaveClick(
+                                        savings = Savings(
                                             title = title,
                                             amount = amount.toDouble(),
                                             date = timeStamp,
@@ -341,4 +359,6 @@ fun AddExpensesScreen(
         }
     )
 }
+
+
 

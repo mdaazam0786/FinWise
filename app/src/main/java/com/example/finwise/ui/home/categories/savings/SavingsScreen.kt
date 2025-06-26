@@ -3,6 +3,7 @@ package com.example.finwise.ui.home.categories.savings
 import BottomNavigationBar
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,8 +31,9 @@ import androidx.navigation.NavHostController
 import com.example.finwise.R
 import com.example.finwise.ui.components.CentreTopBar
 import com.example.finwise.ui.home.HomeViewModel
+import com.example.finwise.util.Routes
 
-data class Goal(val name: String, val imageId: Int)
+data class SavingsItem(val name: String, val imageId: Int, val route : String)
 
 @Composable
 fun SavingsScreen(
@@ -122,10 +124,10 @@ fun SavingsScreen(
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         val goals = listOf(
-                            Goal("Travel", R.drawable.img_19),
-                            Goal("New House", R.drawable.img_20),
-                            Goal("Car", R.drawable.img_21),
-                            Goal("Wedding", R.drawable.img_22)
+                            SavingsItem("Travel", R.drawable.img_19, Routes.TravelSavingsScreen),
+                            SavingsItem("New House", R.drawable.img_20, Routes.HomeSavingsScreen),
+                            SavingsItem("Car", R.drawable.img_21, Routes.CarSavingsScreen),
+                            SavingsItem("Wedding", R.drawable.img_22, Routes.WeddingSavingsScreen)
                         )
 
                         // List of Goals Icons
@@ -137,7 +139,7 @@ fun SavingsScreen(
                                 .fillMaxWidth()
                         ) {
                             items(goals) { goal ->
-                                GoalItem(goal = goal)
+                                GoalItem(goal = goal, navController = navController)
                             }
                         }
                     }
@@ -148,25 +150,25 @@ fun SavingsScreen(
 }
 
 @Composable
-fun GoalItem(goal: Goal) {
+fun GoalItem(goal: SavingsItem , navController : NavHostController) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
         modifier = Modifier
             .padding(8.dp)
+            .clickable{
+                navController.navigate(goal.route)
+            }
             .clip(RoundedCornerShape(16.dp))
             .background(Color(0xFF6DB6FE)) // Light background color
             .size(100.dp) // Adjust size as needed
     ) {
-        Image(
+        Icon(
             painter = painterResource(id = goal.imageId),
             contentDescription = goal.name,
-            modifier = Modifier.size(40.dp) // Adjust icon size
+            modifier = Modifier.size(40.dp), // Adjust icon size
+            tint = Color.White
         )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = goal.name,
-            style = TextStyle(fontSize = 14.sp, fontWeight = FontWeight.Medium)
-        )
+
     }
 }

@@ -24,6 +24,7 @@ object Routes {
     const val GiftsCategoryScreen = "giftsCategoryScreen"
     const val AddExpenseScreen = "addExpenseScreen"
     const val AddIncomeScreen = "addIncomeScreen"
+    const val AddSavingsScreen = "addSavingsScreen"
     const val FoodDetailScreen = "foodDetailScreen"
     const val CarSavingsScreen = "carSavingsScreen"
     const val HomeSavingsScreen = "homeSavingsScreen"

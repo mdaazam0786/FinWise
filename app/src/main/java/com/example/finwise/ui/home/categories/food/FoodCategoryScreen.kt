@@ -45,7 +45,6 @@ import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 
-@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun FoodExpensesScreen(
     navController: NavHostController,

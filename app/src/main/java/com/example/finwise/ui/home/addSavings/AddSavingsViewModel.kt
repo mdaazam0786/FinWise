@@ -1,6 +1,10 @@
-package com.example.finwise.ui.home.addexpense
+package com.example.finwise.ui.home.addSavings
+
+import com.example.finwise.ui.home.addexpense.AddExpenseEvent
+
 
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.derivedStateOf
@@ -13,16 +17,19 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.createSavedStateHandle
 import androidx.lifecycle.viewModelScope
 import com.example.finwise.data.dao.ExpenseDao
+import com.example.finwise.data.dao.SavingsDao
 import com.example.finwise.data.model.expense.Expense
 import com.example.finwise.util.Routes
 import com.example.finwise.util.UiEvent
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -30,8 +37,8 @@ import javax.inject.Inject
 
 
 @HiltViewModel
-class AddExpenseViewModel @Inject constructor(
-    private val expenseDao: ExpenseDao,
+class AddSavingsViewModel @Inject constructor(
+    private val savingsDao: SavingsDao,
 ) : ViewModel() {
     private val _uiEvent =  Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
@@ -43,12 +50,12 @@ class AddExpenseViewModel @Inject constructor(
     val title : StateFlow<String> = _title.asStateFlow()
 
 
-    fun onAddExpenseEvent(event : AddExpenseEvent){
+    fun onAddSavingsEvent(event : AddSavingsEvent){
         when(event){
-            is AddExpenseEvent.OnAmountChange -> {
+            is AddSavingsEvent.OnAmountChange -> {
                 onAmountChange(event.amount)
             }
-            is AddExpenseEvent.OnSaveClick -> {
+            is AddSavingsEvent.OnSaveClick -> {
                 viewModelScope.launch {
                     if(title.value.isEmpty()){
                         sendUiEvent(UiEvent.ShowSnackbar(
@@ -63,15 +70,25 @@ class AddExpenseViewModel @Inject constructor(
                         return@launch
                     }
                     else{
-                        expenseDao.insertExpense(
-                            event.expense
-                        )
+                        try {
+                            withContext(Dispatchers.IO) {
+                                savingsDao.insertSavings(
+                                    event.savings
+                                )
+                            }
+                            sendUiEvent(UiEvent.ShowSnackbar("Saving added successfully!"))
+                            sendUiEvent(UiEvent.PopBackStack)
+                        }catch(e : Exception){
+                            Log.e("AddSavingsVM", "Error inserting saving: ${e.message}")
+                            sendUiEvent(UiEvent.ShowSnackbar("Error adding saving: ${e.message}"))
+                        }
+
                         sendUiEvent(UiEvent.PopBackStack)
                     }
 
                 }
             }
-            is AddExpenseEvent.OnTitleChange -> {
+            is AddSavingsEvent.OnTitleChange -> {
                 onTitleChange(event.title)
             }
         }

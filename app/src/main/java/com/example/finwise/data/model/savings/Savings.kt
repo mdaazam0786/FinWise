@@ -7,7 +7,7 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "savings")
 data class Savings(
-    @PrimaryKey
+    @PrimaryKey(autoGenerate = true)
     val id : Int = 0,
     @ColumnInfo(name = "title")
     val title : String,

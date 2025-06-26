@@ -9,6 +9,7 @@ import com.example.finwise.data.chartData.MonthlySummary
 import com.example.finwise.data.chartData.WeeklySummary
 import com.example.finwise.data.chartData.YearlySummary
 import com.example.finwise.data.model.expense.Expense
+import com.example.finwise.data.model.transaction.CategoryTotal
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -25,6 +26,9 @@ interface ExpenseDao {
 
     @Query("SELECT * FROM expenses ORDER BY date DESC")  // Newest first
     fun getExpensesOrderedByDateDesc(): Flow<List<Expense>>
+
+    @Query("SELECT category, SUM(amount) AS totalAmount FROM expenses GROUP BY category")
+    fun getExpenseTotalsByCategory(): Flow<List<CategoryTotal>>
 
     @Insert
     suspend fun insertExpense(expense: Expense)

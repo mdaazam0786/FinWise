@@ -14,6 +14,7 @@ import com.example.finwise.data.User
 import com.example.finwise.ui.home.AnalysisScreen
 import com.example.finwise.ui.home.HomeScreen
 import com.example.finwise.ui.home.HomeViewModel
+import com.example.finwise.ui.home.addSavings.AddSavingsScreen
 import com.example.finwise.ui.home.addexpense.AddExpensesScreen
 import com.example.finwise.ui.home.addincome.AddIncomesScreen
 import com.example.finwise.ui.home.categories.category.CategoriesScreen
@@ -24,6 +25,10 @@ import com.example.finwise.ui.home.categories.groceries.GroceriesCategoryScreen
 import com.example.finwise.ui.home.categories.medicine.MedicineCategoryScreen
 import com.example.finwise.ui.home.categories.rent.RentCategoryScreen
 import com.example.finwise.ui.home.categories.savings.SavingsScreen
+import com.example.finwise.ui.home.categories.savings.car.CarSavingsScreen
+import com.example.finwise.ui.home.categories.savings.house.HouseSavingsScreen
+import com.example.finwise.ui.home.categories.savings.travel.TravelSavingsScreen
+import com.example.finwise.ui.home.categories.savings.wedding.WeddingSavingsScreen
 import com.example.finwise.ui.home.categories.transport.TransportCategoryScreen
 import com.example.finwise.ui.home.profile.ProfileScreen
 import com.example.finwise.ui.home.profile.editprofile.EditProfileScreen
@@ -82,11 +87,33 @@ fun NavGraphBuilder.homeNavGraph(
         composable(route = Routes.SavingsCategoryScreen) {
             SavingsScreen(navController = navController)
         }
+        composable(route = Routes.HomeSavingsScreen){
+            HouseSavingsScreen(
+                navController = navController
+            )
+        }
+        composable(route = Routes.CarSavingsScreen){
+            CarSavingsScreen(
+                navController = navController
+            )
+        }
+        composable(route = Routes.WeddingSavingsScreen){
+            WeddingSavingsScreen(
+                navController = navController
+            )
+        }
+        composable(route = Routes.TravelSavingsScreen){
+            TravelSavingsScreen(navController = navController)
+        }
+
         composable(route = Routes.AddExpenseScreen) {
             AddExpensesScreen(navController = navController)
         }
         composable(route = Routes.AddIncomeScreen) {
             AddIncomesScreen(navController = navController)
+        }
+        composable(route = Routes.AddSavingsScreen){
+            AddSavingsScreen(navController = navController)
         }
     }
 }

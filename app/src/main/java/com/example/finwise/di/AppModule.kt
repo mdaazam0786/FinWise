@@ -6,10 +6,12 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.preferencesDataStoreFile
 import com.example.finwise.data.dao.ExpenseDao
+import com.example.finwise.data.dao.GoalDao
 import com.example.finwise.data.dao.ImageDao
 import com.example.finwise.data.dao.IncomeDao
 import com.example.finwise.data.dao.SavingsDao
 import com.example.finwise.data.database.ExpenseDatabase
+import com.example.finwise.data.database.GoalDatabase
 import com.example.finwise.data.database.ImageDatabase
 import com.example.finwise.data.database.IncomeDatabase
 import com.example.finwise.data.database.SavingsDatabase
@@ -82,10 +84,14 @@ class AppModule {
     @ViewModelScoped
     fun provideTransactionRepository(
         incomeDao : IncomeDao,
-        expenseDao: ExpenseDao
+        expenseDao: ExpenseDao,
+        savingsDao: SavingsDao,
+        goalDao : GoalDao
     ) : TransactionRepository = TransactionRepository(
        incomeDao = incomeDao,
-        expenseDao = expenseDao
+        expenseDao = expenseDao,
+        savingsDao = savingsDao,
+        goalDao = goalDao
     )
 
 
@@ -93,6 +99,17 @@ class AppModule {
     fun provideExpenseDatabase(@ApplicationContext context: Context) : ExpenseDatabase{
         return ExpenseDatabase.getInstance(context)
     }
+
+    @Provides
+    fun provideGoalDatabase(@ApplicationContext context: Context) : GoalDatabase{
+        return GoalDatabase.getInstance(context)
+    }
+
+    @Provides
+    fun provideGoalDao(goalDatabase: GoalDatabase) : GoalDao{
+        return goalDatabase.goalDao()
+    }
+
 
     @Provides
     fun provideExpenseDao(expenseDatabase: ExpenseDatabase) : ExpenseDao{

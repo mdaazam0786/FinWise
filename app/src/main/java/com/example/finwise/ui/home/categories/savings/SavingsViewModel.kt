@@ -15,6 +15,7 @@ class SavingsViewModel @Inject constructor() : ViewModel() {
     private val _uiEvent =  Channel<UiEvent>()
     val uiEvent = _uiEvent.receiveAsFlow()
 
+
     fun onSavingsEvent(event: SavingsEvent) {
         when(event) {
             SavingsEvent.OnAccountBalanceButton -> {
@@ -50,6 +51,8 @@ class SavingsViewModel @Inject constructor() : ViewModel() {
         }
 
     }
+
+
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
             _uiEvent.send(event)

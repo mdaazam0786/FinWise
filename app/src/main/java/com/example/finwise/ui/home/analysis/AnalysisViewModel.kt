@@ -1,40 +1,35 @@
 package com.example.finwise.ui.home.analysis
 
-import android.os.Build
-import androidx.annotation.RequiresApi
+// Import your specific Income/Expense models if needed for dummy data
+import androidx.compose.ui.graphics.Color
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.finwise.data.chartData.ChartDataPoint
-import com.example.finwise.data.chartData.DailySummary
 import com.example.finwise.data.chartData.TimeFrame
-import com.example.finwise.data.dao.ExpenseDao
-import com.example.finwise.data.dao.IncomeDao
-import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.*
-import kotlinx.coroutines.launch
-import java.text.NumberFormat
-import java.time.Instant // Import Instant
-import java.time.LocalDate
-import java.time.ZoneId
-import java.util.Locale
-import java.util.concurrent.TimeUnit // For dummy data date calculation
-import javax.inject.Inject
-import kotlin.random.Random // For dummy data
-
-// Import your specific Income/Expense models if needed for dummy data
-import com.example.finwise.data.model.income.Income
-import com.example.finwise.data.model.expense.Expense
+import com.example.finwise.data.model.transaction.CategoryTotal
 import com.example.finwise.data.repository.TransactionRepository
-import com.example.finwise.util.Utils
-import kotlinx.coroutines.ExperimentalCoroutinesApi
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.flatMapLatest
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.Calendar
 import java.util.Date
+import java.util.Locale
+import javax.inject.Inject
 
 @HiltViewModel
 class AnalysisViewModel @Inject constructor(
     private val repository : TransactionRepository
 ) : ViewModel() {
+
+    private val _expensePieChartData = MutableStateFlow(PieChartData(emptyList(), 0f))
+    val expensePieChartData: StateFlow<PieChartData> = _expensePieChartData.asStateFlow()
+
 
     private val _selectedTimeFrame = MutableStateFlow(TimeFrame.DAILY)
     val selectedTimeFrame: StateFlow<TimeFrame> = _selectedTimeFrame.asStateFlow()
@@ -42,6 +37,16 @@ class AnalysisViewModel @Inject constructor(
     // This will hold the data for the currently selected timeframe
     private val _graphData = MutableStateFlow(CombinedGraphData(LineGraphData(emptyList(), emptyList()), LineGraphData(emptyList(), emptyList())))
     val graphData: StateFlow<CombinedGraphData> = _graphData.asStateFlow()
+
+    private val categoryColors = mapOf(
+        "FOOD" to Color(0xFFF44336),     // Red
+        "TRANSPORT" to Color(0xFFE91E63), // Pink
+        "GROCERIES" to Color(0xFF9C27B0), // Purple
+        "RENT" to Color(0xFF673AB7),      // Deep Purple
+        "GIFTS" to Color(0xFF3F51B5),  // Indigo
+        "ENTERTAINMENT" to Color(0xFF2196F3), // Blue
+        "MEDICINE" to Color(0xFF03A9F4),    // Light Blue
+    )
 
     init {
         viewModelScope.launch {
@@ -57,6 +62,35 @@ class AnalysisViewModel @Inject constructor(
                 _graphData.value = combinedData
             }
         }
+        viewModelScope.launch {
+            repository.getExpenseTotalsByCategory()
+                .map { categoryTotals ->
+                    processPieChartData(categoryTotals)
+                }
+                .collect { pieChartData ->
+                    _expensePieChartData.value = pieChartData
+                }
+        }
+    }
+
+    private fun processPieChartData(categoryTotals: List<CategoryTotal>): PieChartData {
+        val totalExpense = categoryTotals.sumOf { it.totalAmount }.toFloat()
+        if (totalExpense == 0f) {
+            return PieChartData(emptyList(), 0f)
+        }
+
+        val slices = categoryTotals.map { categoryTotal ->
+            val percentage = (categoryTotal.totalAmount.toFloat() / totalExpense) * 100
+
+            PieChartSlice(
+                category = categoryTotal.categoryName,
+                value = categoryTotal.totalAmount.toFloat(),
+                percentage = percentage,
+                color = categoryColors[categoryTotal.categoryName] ?: categoryColors["Other"] ?: Color.Gray // Assign color, default to gray
+            )
+        }.sortedByDescending { it.value } // Sort slices by value for better visualization
+
+        return PieChartData(slices, totalExpense)
     }
 
     fun setTimeFrame(timeFrame: TimeFrame) {
@@ -235,4 +269,16 @@ data class LineGraphData(
 data class CombinedGraphData(
     val expenseData: LineGraphData,
     val incomeData: LineGraphData
+)
+data class PieChartSlice(
+    val category: String,
+    val value: Float,
+    val percentage: Float,
+    val color: Color
+)
+
+// NEW: Data class for the entire Pie Chart data
+data class PieChartData(
+    val slices: List<PieChartSlice>,
+    val totalExpense: Float
 )

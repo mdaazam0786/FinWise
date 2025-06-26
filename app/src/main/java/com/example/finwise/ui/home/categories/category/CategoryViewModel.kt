@@ -79,7 +79,6 @@ class CategoryViewModel @Inject constructor(
     }
 
 
-
     private fun sendUiEvent(event: UiEvent) {
         viewModelScope.launch {
             _uiEvent.send(event)

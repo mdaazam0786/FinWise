@@ -34,7 +34,7 @@ import com.example.finwise.data.chartData.TimeFrame
 import com.example.finwise.ui.components.CentreTopBar
 import com.example.finwise.ui.home.analysis.AnalysisViewModel
 import com.example.finwise.ui.home.analysis.BarGraph
-import com.example.finwise.ui.home.analysis.BarType
+import com.example.finwise.ui.home.analysis.PieChart
 
 @Composable
 fun AnalysisScreen(
@@ -44,6 +44,7 @@ fun AnalysisScreen(
 
     val selectedTimeFrame = viewModel.selectedTimeFrame.collectAsState()
     val combinedGraphData = viewModel.graphData.collectAsState()
+    val expensePieChartData = viewModel.expensePieChartData.collectAsState()
 
     Scaffold(
         topBar = {
@@ -56,35 +57,41 @@ fun AnalysisScreen(
             BottomNavigationBar(navController)
         }
     ) { paddingValues ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .padding(paddingValues)
                 .fillMaxSize()
                 .background(color = Color(0xFFf0faf5)),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Timeframe selection buttons
-            Spacer(modifier = Modifier.height(16.dp))
-            TimeFrameSelector(
-                selectedTimeFrame = selectedTimeFrame.value,
-                onTimeFrameSelected = { viewModel.setTimeFrame(it) }
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Line Graph
-            if (combinedGraphData.value.expenseData.yValues.isNotEmpty() || combinedGraphData.value.incomeData.yValues.isNotEmpty()) {
-                BarGraph(combinedGraphData = combinedGraphData.value)
-            } else {
-                Text(
-                    text = "No data available for the selected period.",
-                    modifier = Modifier.padding(32.dp),
-                    color = Color.Gray
+            items(1) {
+                // Timeframe selection buttons
+                Spacer(modifier = Modifier.height(16.dp))
+                TimeFrameSelector(
+                    selectedTimeFrame = selectedTimeFrame.value,
+                    onTimeFrameSelected = { viewModel.setTimeFrame(it) }
                 )
-            }
+                Spacer(modifier = Modifier.height(16.dp))
 
-            // Optional: Legend for the graph colors
-            Spacer(modifier = Modifier.height(16.dp))
-            GraphLegend(expenseColor = Color.Blue, incomeColor = Color.Green)
+                // Line Graph
+                if (combinedGraphData.value.expenseData.yValues.isNotEmpty() || combinedGraphData.value.incomeData.yValues.isNotEmpty()) {
+                    BarGraph(combinedGraphData = combinedGraphData.value)
+                } else {
+                    Text(
+                        text = "No data available for the selected period.",
+                        modifier = Modifier.padding(32.dp),
+                        color = Color.Gray
+                    )
+                }
+
+                // Optional: Legend for the graph colors
+                Spacer(modifier = Modifier.height(16.dp))
+                GraphLegend(expenseColor = Color.Blue, incomeColor = Color.Green)
+
+
+
+                PieChart(pieChartData = expensePieChartData.value)
+            }
         }
     }
 }

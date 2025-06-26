@@ -1,6 +1,9 @@
 package com.example.finwise.ui.home.analysis
 
+import android.annotation.SuppressLint
 import android.graphics.Paint
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -17,13 +20,17 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.toArgb
@@ -34,17 +41,43 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.round
 
+
+@SuppressLint("AutoboxingStateCreation")
 @Composable
-fun BarGraph(
+fun BarGraph( // Renamed back to LineGraph
     combinedGraphData: CombinedGraphData,
     height: Dp = 250.dp,
     expenseColor: Color = Color.Blue,
     incomeColor: Color = Color.Green,
     showYAxisLabels: Boolean = true,
-    showXAxisLabels: Boolean = true
+    showXAxisLabels: Boolean = true,
+    animDuration: Int = 1000, // Animation duration for line graph
+    animDelay: Int = 0
 ) {
     val expenseData = combinedGraphData.expenseData
     val incomeData = combinedGraphData.incomeData
+
+    // NEW: Use an Int counter to force animation re-triggering
+    var animationTriggerCounter by remember { androidx.compose.runtime.mutableIntStateOf(0) }
+
+    val animatedProgress by animateFloatAsState(
+        // Animate from 0f to 1f when the counter is an odd number (after first trigger)
+        // or effectively from 0f to 1f on initial launch.
+        targetValue = if (animationTriggerCounter > 0) 1f else 0f,
+        animationSpec = tween(durationMillis = animDuration, delayMillis = animDelay),
+        label = "lineGraphAnimationProgress"
+    )
+
+    // Crucial: LaunchedEffect now observes combinedGraphData, but updates the simple counter.
+    LaunchedEffect(key1 = combinedGraphData) {
+        // Incrementing the counter forces `animateFloatAsState`'s `targetValue` to change
+        // (from 0 to 1, or 1 to 0 if we were toggling, but just > 0 for this style),
+        // thereby re-triggering the animation every time new data comes in.
+        animationTriggerCounter++
+        // If you want a more explicit reset and then animate, you can do:
+        // animationTriggerCounter = 0 // Resets to 0, which makes targetValue 0
+        // animationTriggerCounter = 1 // Immediately sets targetValue to 1, causing animation
+    }
 
     // Find the overall max value to normalize both lines
     val allValues = expenseData.yValues + incomeData.yValues
@@ -52,7 +85,7 @@ fun BarGraph(
     val normalizedMaxValue = if (maxValue == 0.0f) 1.0f else maxValue // If all values are 0, use 1 for normalization
 
     val density = LocalDensity.current
-    val textPaint = remember(density) {
+    remember(density) {
         Paint().apply {
             color = Color.Black.toArgb()
             textAlign = Paint.Align.RIGHT
@@ -68,7 +101,7 @@ fun BarGraph(
         modifier = Modifier
             .fillMaxWidth()
             .padding(16.dp),
-        shape = MaterialTheme.shapes.medium, // Using MaterialTheme shapes
+        shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -77,12 +110,12 @@ fun BarGraph(
                 .fillMaxWidth()
                 .height(height + xAxisHeight)
                 .background(Color(0xFFf0faf5))
-                .padding(horizontal = 8.dp, vertical = 8.dp) // Add some internal padding
+                .padding(horizontal = 8.dp, vertical = 8.dp)
         ) {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(1f) // Graph takes most of the vertical space
+                    .weight(1f)
             ) {
                 // Y-Axis Labels
                 if (showYAxisLabels) {
@@ -90,7 +123,7 @@ fun BarGraph(
                         modifier = Modifier
                             .width(yAxisLabelWidth)
                             .fillMaxHeight()
-                            .padding(top = 10.dp), // Padding for first label
+                            .padding(top = 10.dp),
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.SpaceBetween
                     ) {
@@ -98,7 +131,7 @@ fun BarGraph(
                         (numSegments downTo 0).forEach { i ->
                             val labelValue = (normalizedMaxValue / numSegments) * i
                             Text(
-                                text = round(labelValue).toString(),
+                                text = round(labelValue).toString(), // Corrected rounding
                                 fontSize = 12.sp,
                                 color = Color.Black,
                                 textAlign = TextAlign.End,
@@ -113,14 +146,14 @@ fun BarGraph(
                     modifier = Modifier
                         .weight(1f)
                         .fillMaxHeight()
-                        .padding(start = if (showYAxisLabels) 8.dp else 0.dp) // Space after Y-axis labels
+                        .padding(start = if (showYAxisLabels) 8.dp else 0.dp)
                 ) {
                     val graphWidth = size.width
                     val graphHeight = size.height
 
                     // Draw horizontal dotted lines for Y-axis scale
                     val numHorizontalLines = 3
-                    val yStep = graphHeight / (numHorizontalLines + 1) // +1 because we start from 0 value
+                    val yStep = graphHeight / (numHorizontalLines + 1)
                     for (i in 1..numHorizontalLines) {
                         drawLine(
                             start = Offset(0f, graphHeight - i * yStep),
@@ -133,20 +166,27 @@ fun BarGraph(
 
                     // --- Draw Expense Line ---
                     if (expenseData.yValues.isNotEmpty() && expenseData.xValues.size == expenseData.yValues.size) {
-                        val path = Path()
+                        val expensePath = Path()
                         val xStep = graphWidth / (expenseData.yValues.size - 1).toFloat()
 
                         expenseData.yValues.forEachIndexed { index, value ->
                             val x = index * xStep
                             val y = graphHeight - (value / normalizedMaxValue) * graphHeight
                             if (index == 0) {
-                                path.moveTo(x, y)
+                                expensePath.moveTo(x, y)
                             } else {
-                                path.lineTo(x, y)
+                                expensePath.lineTo(x, y)
                             }
                         }
+                        val pathMeasure = PathMeasure()
+                        pathMeasure.setPath(expensePath, false)
+                        val segmentLength = pathMeasure.length * animatedProgress // Use animatedProgress value directly
+
+                        val animatedPath = Path()
+                        pathMeasure.getSegment(0f, segmentLength, animatedPath, true)
+
                         drawPath(
-                            path = path,
+                            path = animatedPath, // Draw the animated segment
                             color = expenseColor,
                             style = Stroke(width = 4f, cap = StrokeCap.Round)
                         )
@@ -160,20 +200,27 @@ fun BarGraph(
 
                     // --- Draw Income Line ---
                     if (incomeData.yValues.isNotEmpty() && incomeData.xValues.size == incomeData.yValues.size) {
-                        val path = Path()
+                        val incomePath = Path()
                         val xStep = graphWidth / (incomeData.yValues.size - 1).toFloat()
 
                         incomeData.yValues.forEachIndexed { index, value ->
                             val x = index * xStep
                             val y = graphHeight - (value / normalizedMaxValue) * graphHeight
                             if (index == 0) {
-                                path.moveTo(x, y)
+                                incomePath.moveTo(x, y)
                             } else {
-                                path.lineTo(x, y)
+                                incomePath.lineTo(x, y)
                             }
                         }
+                        val pathMeasure = PathMeasure()
+                        pathMeasure.setPath(incomePath, false)
+                        val segmentLength = pathMeasure.length * animatedProgress // Use animatedProgress value directly
+
+                        val animatedPath = Path()
+                        pathMeasure.getSegment(0f, segmentLength, animatedPath, true)
+
                         drawPath(
-                            path = path,
+                            path = animatedPath, // Draw the animated segment
                             color = incomeColor,
                             style = Stroke(width = 4f, cap = StrokeCap.Round)
                         )
@@ -193,11 +240,11 @@ fun BarGraph(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(xAxisHeight),
-                    horizontalArrangement = Arrangement.SpaceAround, // Distribute labels evenly
+                    horizontalArrangement = Arrangement.SpaceAround,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     if (showYAxisLabels) {
-                        Spacer(modifier = Modifier.width(yAxisLabelWidth)) // Align X-axis labels with graph, considering Y-axis
+                        Spacer(modifier = Modifier.width(yAxisLabelWidth))
                     }
                     expenseData.xValues.forEach { label ->
                         Text(
@@ -212,10 +259,4 @@ fun BarGraph(
             }
         }
     }
-}
-enum class BarType {
-
-    CIRCULAR_TYPE,
-    TOP_CURVED
-
 }
