@@ -4,9 +4,6 @@
 
 ---
 
-## 📸 Screenshots
-
-*(Add screenshots here to showcase your app's UI and features)*
 
 ---
 
